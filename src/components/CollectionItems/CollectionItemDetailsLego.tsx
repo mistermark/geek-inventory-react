@@ -74,7 +74,7 @@ export const CollectionItemDetailsLego = ({
             <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
               <ul className='list-none'>
               {item.links.map((link: RefUrl) => (
-                <li className='flex items-center mb-1'>
+                <li key={link.url} className='flex items-center mb-1'>
                   <a href={ link.url } target="_blank" rel="noopener noreferrer" className="underline hover:no-underline text-blue-700">{ link.name }</a>
                   <Icon icon="BiLinkExternal" className='ml-1 w-4 h-4'></Icon>
                 </li>

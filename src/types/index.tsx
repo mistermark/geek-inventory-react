@@ -9,6 +9,11 @@ export type Collection = {
   items: CollectionItem[]
 };
 
+export type ItemCollectionType = {
+  name: string; 
+  type: string;
+}
+
 export type ItemState = "pre-order" | "sealed" | "built" | "opened" | "boxed" | "sold";
 export type ItemStateIcon = 'BiHourglass' | 'BiPackage' | 'BiLandscape' | 'BiBox' | 'BiDollar' | 'BiEnvelopeOpen';
 export type RefUrl = {

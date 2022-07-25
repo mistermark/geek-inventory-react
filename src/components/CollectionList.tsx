@@ -1,43 +1,53 @@
 import { useEffect, useState } from 'react';
 
-import { Collection, CollectionItem } from '../types';
+import { CollectionItem, ItemCollectionType } from '../types';
 import Icon from '../shared/Icon';
 import LegoItemForm from './LegoItemForm';
 import SlideOver from '../shared/SlideOver';
 import { CollectionItems } from './CollectionItems/CollectionItems';
 import { EmptyState } from '../shared/EmptyState';
 import { CollectionItemDetails } from './CollectionItems/CollectionItemDetails';
+import collectionItems from '../data/collection-items';
 
 type CollectionListProps = {
-  collection: Collection | undefined;
+  collectionType: ItemCollectionType | undefined;
 };
 
-export default function CollectionList({ collection }: CollectionListProps) {
-  const [slideOverState, setSlideOverState] = useState({open: false});
-  const [selectedCollectionItem, setSelectedCollectionItem] = useState<CollectionItem | undefined>();
+export default function CollectionList({
+  collectionType,
+}: CollectionListProps) {
+  const [slideOverState, setSlideOverState] = useState({ open: false });
+  const [selectedCollectionItem, setSelectedCollectionItem] = useState<
+    CollectionItem | undefined
+  >();
 
   const onSlideOverClose = (val: boolean) => {
-    setSlideOverState({open: val});
+    setSlideOverState({ open: val });
   };
   const onItemSelectionTrigger = (itemDetails: CollectionItem) => {
     setSelectedCollectionItem(itemDetails);
-  }
+  };
+
+  const collectionItemsData = collectionItems.filter(
+    (item: CollectionItem) =>
+      collectionType && item.type === collectionType.type
+  );
 
   useEffect(() => {
     setSelectedCollectionItem(undefined);
-  }, [collection])
+  }, [collectionType]);
 
   return (
     <>
       <div className="border-b mb-4 px-2 pb-2 border-gray-400 flex justify-between items-center">
         <h3 className="text-lg leading-6 font-medium text-gray-900">
-          Collection: {collection?.title ? collection.title : 'Not selected'}
+          <span>Collection: {collectionType ? collectionType.name : 'Not selected'}</span>
         </h3>
-        {collection ? (
+        {collectionType ? (
           <button
             type="button"
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            onClick={() => setSlideOverState({open: true})}
+            onClick={() => setSlideOverState({ open: true })}
           >
             <Icon
               icon={'BiPlus'}
@@ -48,18 +58,22 @@ export default function CollectionList({ collection }: CollectionListProps) {
           </button>
         ) : null}
       </div>
-      {collection !== undefined ? (
-        <div className='flex items-start'>
+      {collectionType !== undefined ? (
+        <div className="flex items-start">
           <div className="bg-white shadow overflow-hidden w-3/5">
-            <CollectionItems collection={collection} selected={onItemSelectionTrigger} />
+            <CollectionItems
+              collection={collectionItemsData}
+              type={collectionType.type}
+              selected={onItemSelectionTrigger}
+            />
           </div>
-          <div className='w-2/5 px-4'>
+          <div className="w-2/5 px-4">
             <div className="bg-white shadow overflow-hidden">
-              {selectedCollectionItem ? 
+              {selectedCollectionItem ? (
                 <CollectionItemDetails selectedItem={selectedCollectionItem} />
-              : 
+              ) : (
                 <EmptyState icon="BiCube" label="Select an Item" />
-              }
+              )}
             </div>
           </div>
         </div>

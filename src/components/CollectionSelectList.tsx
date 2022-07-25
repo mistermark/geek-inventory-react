@@ -1,34 +1,33 @@
 /* This example requires Tailwind CSS v2.0+ */
 import React, { Fragment, useState } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
-import * as BoxIcons from "react-icons/bi";
 
 import Icon from '../shared/Icon';
-import { Collection } from '../types';
-import { classNames } from '../utils';
-
-type ListboxInitialOption = {
-  title: string;
-  icon: keyof typeof BoxIcons;
-}
+import { CollectionItem, ItemCollectionType } from '../types';
+import { classNames, collectionTypeMap, uniqBy } from '../utils';
 
 /**
  * @param {object} props
  * @return {React.ReactElement}
  */
 export default function CollectionSelectList(props: {
-  list: Collection[];
+  list: CollectionItem[];
   onSelected: any;
 }): React.ReactElement {
-  const [selected, setSelected] = useState<Collection | ListboxInitialOption>({
-    icon: "BiArchive",
-    title: "Select a Collection"
+  const [selected, setSelected] = useState<ItemCollectionType>({
+    type: "none",
+    name: "Select a Collection"
   });
 
-  const onChangeTrigger = (value: Collection) => {
+  const onChangeTrigger = (value: ItemCollectionType) => {
     props.onSelected(value);
     setSelected(value);
   };
+
+  const arrayOfTypes = props.list.map(listItem => {
+    return {name: collectionTypeMap(listItem.type), type: listItem.type};
+  });
+  const filteredArray = uniqBy(arrayOfTypes, JSON.stringify);
 
   return (
     <Listbox value={selected} onChange={onChangeTrigger}>
@@ -44,8 +43,8 @@ export default function CollectionSelectList(props: {
               focus:border-indigo-500"
             >
               <span className="flex items-center">
-                <Icon icon={selected.icon} />
-                <span className="ml-3 block truncate">{selected.title}</span>
+                <Icon icon="BiBox" />
+                <span className="ml-3 block truncate">{selected.name}</span>
               </span>
               <span className="ml-3 absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
                 <Icon icon={open ? "BiChevronUp" : "BiChevronDown"}
@@ -66,9 +65,9 @@ export default function CollectionSelectList(props: {
                 className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-56 rounded-md py-1
                 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
               >
-                {props.list.map((listItem) => (
+                {filteredArray.map((listItem: ItemCollectionType) => (
                   <Listbox.Option
-                    key={listItem.id}
+                    key={listItem.type}
                     className={({ active }) =>
                       classNames(
                         active ? 'text-white bg-emerald-400' : 'text-gray-900',
@@ -80,14 +79,14 @@ export default function CollectionSelectList(props: {
                     {({ selected, active }) => (
                       <>
                         <div className="flex items-center">
-                          <Icon icon={listItem.icon}  />
+                          <Icon icon="BiBox" />
                           <span
                             className={classNames(
                               selected ? 'font-semibold' : 'font-normal',
                               'ml-3 block truncate'
                             )}
                           >
-                            {listItem.title}
+                            {listItem.name}
                           </span>
                         </div>
 

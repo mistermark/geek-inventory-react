@@ -2,6 +2,26 @@ import { ItemStateIcon } from "../types";
 
 /**
  * 
+ */
+export const collectionTypeMap = (itemType: string) => {
+  const typeMap: {[key: string]: string} = {
+    'lego': 'LEGO',
+    'nendoroid': 'Nendoroid',
+    'videogame': 'Video Game'
+  }
+  return typeMap[itemType];
+}
+
+export const uniqBy = (arr: any[], key: any) => {
+  let seen = new Set();
+  return arr.filter((item: any) => {
+    let k = key(item);
+    return seen.has(k) ? false : seen.add(k);
+});
+}
+
+/**
+ * 
  * @param {number} start 
  * @returns {number[]} years
  */

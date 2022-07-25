@@ -2,7 +2,7 @@ import { Fragment, useState } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
 import * as dayjs from 'dayjs';
 
-import legoThemes from '../data/lego';
+import legoThemes from '../data/lego-themes';
 import { LegoTheme } from '../types';
 import { classNames, days, generateArrayOfYears, months } from '../utils';
 import Icon from '../shared/Icon';
