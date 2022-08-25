@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import dayjs from 'dayjs';
+
 import Icon from '../../shared/Icon';
 import { CollectionItem, NendoroidItem } from '../../types';
 import { stateIcons, truncate } from '../../utils';
@@ -33,24 +34,24 @@ export const CollectionItemNendoroid = ({
         <tbody>
         {items !== undefined ? (
           items.map((item: NendoroidItem) => (
-            <tr key={item.id} onClick={() => setSelectedItem(item)} 
+            <tr key={item._id} onClick={() => setSelectedItem(item)} 
               className={`cursor-pointer select-none text-sm text-gray-900 hover:bg-emerald-200 ${selectedListItem === item ? 'bg-emerald-100' : 'odd:bg-white even:bg-gray-50'}`}>
               <td className="p-2 text-gray-400 whitespace-nowrap">
-                {item.number}
+                {item.meta.number}
               </td>
               <td className="p-2">
                 {truncate(item.name, 30)}
               </td>
               <td className="p-2 text-gray-400">
-                {truncate(item.series, 30)}
+                {truncate(item.meta.series, 30)}
               </td>
               <td className="p-2 text-gray-400 align-middle">
                 <div className="flex justify-center">
-                  <Icon icon={stateIcons[item.state]} className="w-5 h-5" />
+                  <Icon icon={stateIcons[item.state || 'unknown']} className="w-5 h-5" />
                 </div>
               </td>
               <td className="p-2 text-gray-400 whitespace-nowrap">
-                {dayjs(item.release_date).format('YYYY-M-D')}
+                {dayjs(item.release_date).format('YYYY/MM/DD')}
               </td>
               <td>
                 <div className='h-full justify-center flex'>

@@ -67,7 +67,7 @@ export default function SlideOver(props: { setOpen: any; onClose: any, children:
                       </button>
                     </div>
                   </Transition.Child>
-                  <div className="flex h-full flex-col overflow-y-scroll bg-white pb-6 pt-4 shadow-xl">
+                  <div className="flex h-full flex-col overflow-y-auto bg-white pb-6 pt-4 shadow-xl">
                     <div className="relative mt-6 flex-1 px-4 sm:px-6">
                       {props.children}
                     </div>

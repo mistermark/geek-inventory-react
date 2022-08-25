@@ -1,26 +1,26 @@
-import { CollectionItem } from "../../types"
-import { CollectionItemLego } from "./CollectionItemLego"
-import { CollectionItemNendoroid } from "./CollectionItemNendoroid"
-import { CollectionItemVideoGame } from "./CollectionItemVideoGame"
+import { CollectionItem } from '../../types';
+import { CollectionItemsLego } from './CollectionItemsLego';
+import { CollectionItemNendoroid } from './CollectionItemNendoroid';
+import { CollectionItemVideoGame } from './CollectionItemVideoGame';
+import { EmptyState } from '../../shared/EmptyState';
 
 type CollectionItemsProps = {
-    collection: CollectionItem[];
-    selected: Function;
-    type: string;
-}
+  type: string;
+};
 
-export const CollectionItems = ({collection, selected, type}: CollectionItemsProps) => {
-    return (
-        <>
-            {type === 'lego' ?
-            <CollectionItemLego items={collection.filter(item => item.type === 'lego')} selected={selected} />
-            : null}
-            {type === 'nendoroid' ?
-            <CollectionItemNendoroid items={collection.filter(item => item.type === 'nendoroid')} selected={selected} />
-            : null}
-            {type === 'videogame' ?
-            <CollectionItemVideoGame items={collection.filter(item => item.type === 'videogame')} selected={selected} />
-            : null}
-        </>
-    )
-}
+export const CollectionItems = ({ type }: CollectionItemsProps) => {
+  if(type === 'lego') return <CollectionItemsLego />;
+  if(type === 'videogame') return <CollectionItemVideoGame />;
+  // {type === 'nendoroid'} return <CollectionItemNendoroid />;
+
+  return (
+    <div className="bg-white shadow overflow-hidden w-3/5">
+      <div className="bg-transparent overflow-hidden">
+        <EmptyState
+          icon="BiCube"
+          label="Nothing here ... yet?"
+        />
+      </div>
+    </div>
+  );
+};

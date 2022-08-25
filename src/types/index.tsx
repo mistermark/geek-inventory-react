@@ -10,53 +10,67 @@ export type Collection = {
 };
 
 export type ItemCollectionType = {
-  name: string; 
+  name: string;
   type: string;
 }
 
-export type ItemState = "pre-order" | "sealed" | "built" | "opened" | "boxed" | "sold";
-export type ItemStateIcon = 'BiHourglass' | 'BiPackage' | 'BiLandscape' | 'BiBox' | 'BiDollar' | 'BiEnvelopeOpen';
+export type ItemState = "pre-order" | "sealed" | "built" | "opened" | "boxed" | "unknown";
+export type ItemStateIcon = 'BiHourglass' | 'BiPackage' | 'BiLandscape' | 'BiBox' | 'BiEnvelopeOpen' | 'BiQuestionMark';
+
 export type RefUrl = {
   url: string;
   name: string;
 }
-
-type StandardItem = {
-  type: string;
-  id: number;
-  name: string;
-  state: ItemState;
-  quantity: number;
-  release_date: string;
+export type Price = {
+  amount: number;
   currency: string;
-  price: number;
-  ean: string;
-  links?: RefUrl[];
 }
 
-export type LegoItem = StandardItem & {
+type LegoMeta = {
   number: number;
   pieces: number;
   theme: string;
   subtheme?: string;
   minifigs: number;
-  discontinued_date?: string;
-  selling_price?: number;
-};
-
-export type NendoroidItem = StandardItem & {
+}
+type NendoroidMeta = {
   number: number | string;
   series: string;
   manufacturer: string;
-};
-
-export type VideoGameItem = StandardItem & {
+}
+type VideoGameMeta = {
   platform: string;
   developer: string;
   rating: string;
   genre: string[],
   game_progress: string;
   times_played: number;
+}
+
+type StandardItem = {
+  type: string;
+  _id: string;
+  name: string;
+  state: ItemState;
+  quantity: number;
+  release_date: string;
+  price: Price;
+  ean: string;
+  link?: RefUrl;
+  discontinued_date?: string;
+  selling_price?: number;
+}
+
+export type LegoItem = StandardItem & {
+  meta: LegoMeta
+};
+
+export type NendoroidItem = StandardItem & {
+  meta: NendoroidMeta;
+};
+
+export type VideoGameItem = StandardItem & {
+  meta: VideoGameMeta;
 };
 
 export type CollectionItem = LegoItem | NendoroidItem | VideoGameItem;

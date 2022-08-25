@@ -1,9 +1,11 @@
 import React from "react";
 import Navigation from "./Navigation";
 
+import './Layout.css';
+
 function Layout(props: { children: any }) {
   return (
-    <div className="min-h-full">
+    <div className="main-layout h-screen grid">
       <Navigation />
       {props.children}
     </div>

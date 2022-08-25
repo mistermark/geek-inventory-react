@@ -6,28 +6,27 @@ import Icon from '../shared/Icon';
 import { CollectionItem, ItemCollectionType } from '../types';
 import { classNames, collectionTypeMap, uniqBy } from '../utils';
 
+type CollectionSelectListProps = {
+  list: ItemCollectionType[];
+  onSelected: any;
+};
+
 /**
  * @param {object} props
  * @return {React.ReactElement}
  */
-export default function CollectionSelectList(props: {
-  list: CollectionItem[];
-  onSelected: any;
-}): React.ReactElement {
+export const CollectionSelectList = ({list,onSelected}: CollectionSelectListProps): React.ReactElement => {
   const [selected, setSelected] = useState<ItemCollectionType>({
-    type: "none",
-    name: "Select a Collection"
+    type: 'none',
+    name: 'Select a Collection',
   });
 
   const onChangeTrigger = (value: ItemCollectionType) => {
-    props.onSelected(value);
+    onSelected(value);
     setSelected(value);
   };
 
-  const arrayOfTypes = props.list.map(listItem => {
-    return {name: collectionTypeMap(listItem.type), type: listItem.type};
-  });
-  const filteredArray = uniqBy(arrayOfTypes, JSON.stringify);
+  const arrayOfTypes = [...list].sort((a, b) => (a.name > b.name ? 1 : -1));
 
   return (
     <Listbox value={selected} onChange={onChangeTrigger}>
@@ -47,7 +46,8 @@ export default function CollectionSelectList(props: {
                 <span className="ml-3 block truncate">{selected.name}</span>
               </span>
               <span className="ml-3 absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                <Icon icon={open ? "BiChevronUp" : "BiChevronDown"}
+                <Icon
+                  icon={open ? 'BiChevronUp' : 'BiChevronDown'}
                   className="h-5 w-5 text-gray-400"
                   aria-hidden="true"
                 />
@@ -65,7 +65,7 @@ export default function CollectionSelectList(props: {
                 className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-56 rounded-md py-1
                 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
               >
-                {filteredArray.map((listItem: ItemCollectionType) => (
+                {arrayOfTypes.map((listItem: ItemCollectionType) => (
                   <Listbox.Option
                     key={listItem.type}
                     className={({ active }) =>
@@ -97,7 +97,11 @@ export default function CollectionSelectList(props: {
                               'absolute inset-y-0 right-0 flex items-center pr-4'
                             )}
                           >
-                            <Icon icon={"BiCheck"} className="h-5 w-5" aria-hidden="true" />
+                            <Icon
+                              icon={'BiCheck'}
+                              className="h-5 w-5"
+                              aria-hidden="true"
+                            />
                           </span>
                         ) : null}
                       </>
@@ -111,4 +115,4 @@ export default function CollectionSelectList(props: {
       )}
     </Listbox>
   );
-}
+};
