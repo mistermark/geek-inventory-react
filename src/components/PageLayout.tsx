@@ -13,7 +13,7 @@ export default function PageLayout(): React.ReactElement {
   return (
     <div className='page-layout grid'>
       <Header />
-      <main>
+      <main className='bg-gray-100'>
         <div className="h-full max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 relative">
           <Outlet />
         </div>

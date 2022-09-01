@@ -1,10 +1,6 @@
-import { useEffect, useState } from 'react';
-import { useQuery, gql, NetworkStatus } from '@apollo/client';
 
-import { CollectionItem, ItemCollectionType } from '../types';
+import { ItemCollectionType } from '../types';
 import { CollectionItems } from './CollectionItems/CollectionItems';
-import { EmptyState } from '../shared/EmptyState';
-import { CollectionItemDetails } from './CollectionItems/CollectionItemDetails/CollectionItemDetails';
 
 type CollectionListProps = {
   collectionType: ItemCollectionType | undefined;
@@ -12,18 +8,8 @@ type CollectionListProps = {
 };
 
 export default function CollectionList({
-  collectionType = {type: '', name: ''},
-  refetchStatus,
+  collectionType = {type: '', name: ''}
 }: CollectionListProps) {
-  const [selectedCollectionItem, setSelectedCollectionItem] = useState<
-    CollectionItem | undefined
-  >();
-
-  const onItemSelectionTrigger = (itemDetails: CollectionItem) => {
-    const parsedItemDetails = Object.assign(itemDetails);
-    console.log(parsedItemDetails);
-    setSelectedCollectionItem(itemDetails);
-  };
 
   return (
     <>

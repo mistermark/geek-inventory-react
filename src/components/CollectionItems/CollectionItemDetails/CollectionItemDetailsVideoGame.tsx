@@ -1,21 +1,10 @@
 import { FormattedNumber } from 'react-intl';
 import dayjs from 'dayjs';
-
-import Icon from '../../../shared/Icon';
-import { gameGenres, sortArrayObjects, stateIcons, stripTypename } from '../../../utils';
-import { RefUrl, VideoGameItem } from '../../../types';
-import { CollectionItemDetailsHeader } from './CollectionItemDetailsHeader';
-import { CollectionItemDetailsList } from './CollectionItemDetailsList';
-import { CollectionItemDetailsListItem } from './CollectionItemDetailsListItem';
-import { gql, InMemoryCache, useLazyQuery, useMutation } from '@apollo/client';
-import { useEffect, useState } from 'react';
+import { gql, NetworkStatus, useLazyQuery, useMutation } from '@apollo/client';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
-import { CollectionItemDetailsHeaderMenu } from './CollectionItemDetailsHeaderMenu';
-import { DeleteDialog } from '../../../shared/DeleteDialog';
+import { useEffect, useState } from 'react';
 import {
-  Autocomplete,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -27,6 +16,20 @@ import {
   TextField,
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers';
+
+import Icon from '../../../shared/Icon';
+import {
+  gameGenres,
+  sortArrayObjects,
+  stateIcons,
+  stripTypename,
+} from '../../../utils';
+import { VideoGameItem } from '../../../types';
+import { CollectionItemDetailsHeader } from './CollectionItemDetailsHeader';
+import { CollectionItemDetailsList } from './CollectionItemDetailsList';
+import { CollectionItemDetailsListItem } from './CollectionItemDetailsListItem';
+import { CollectionItemDetailsHeaderMenu } from './CollectionItemDetailsHeaderMenu';
+import { DeleteDialog } from '../../../shared/DeleteDialog';
 import { FormInputNumber } from '../../../shared/FormInputNumber';
 import { FormInputText } from '../../../shared/FormInputText';
 import { FormInputUrl } from '../../../shared/FormInputUrl';
@@ -94,8 +97,6 @@ export const CollectionItemDetailsVideoGame = ({
   itemId,
   onDelete,
 }: CollectionItemDetailsVideoGameProps) => {
-  const [genreValue, setGenreValue] = useState(gameGenres[0]);
-
   /**
    * Handle GET action
    */
@@ -104,9 +105,9 @@ export const CollectionItemDetailsVideoGame = ({
     getItem,
     { data, loading, error, refetch: itemRefetch, networkStatus },
   ] = useLazyQuery(GET_COLLECTIONITEM, {
-    fetchPolicy: 'cache-and-network',
+    fetchPolicy: 'network-only', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
     onCompleted: (data) => {
-      console.dir(data)
       setItemDetails(data?.item);
     },
   });
@@ -121,14 +122,13 @@ export const CollectionItemDetailsVideoGame = ({
   const [updateCollectionItem] = useMutation(UPDATE_COLLECTIONITEM);
 
   const methods = useForm();
-  const { register, handleSubmit, reset } = methods;
+  const { handleSubmit, reset } = methods;
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const handleEditDialog = (openState: boolean) => {
     setOpenEditDialog(openState);
     reset(itemDetails);
   };
   const onSubmit = (submitData: any) => {
-    console.dir(submitData);
     updateCollectionItem({
       variables: {
         data: stripTypename(submitData),
@@ -168,11 +168,12 @@ export const CollectionItemDetailsVideoGame = ({
     }
   };
 
-  if(loading) return (
-    <div className="bg-white shadow overflow-hidden relative">
-      <LoadingSpinner />
-    </div>
-  )
+  if (networkStatus === NetworkStatus.refetch)
+    return (
+      <div className="min-h-fit">
+        <LoadingSpinner />
+      </div>
+    );
 
   return (
     <>

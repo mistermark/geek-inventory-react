@@ -1,21 +1,7 @@
 import { FormattedNumber } from 'react-intl';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
-import {
-  gql,
-  NetworkStatus,
-  useLazyQuery,
-  useMutation,
-} from '@apollo/client';
-
-import Icon from '../../../shared/Icon';
-import { LegoItem } from '../../../types';
-import { stateIcons, stripTypename } from '../../../utils';
-import { CollectionItemDetailsHeader } from './CollectionItemDetailsHeader';
-import { CollectionItemDetailsList } from './CollectionItemDetailsList';
-import { CollectionItemDetailsListItem } from './CollectionItemDetailsListItem';
-import { CollectionItemDetailsHeaderMenu } from './CollectionItemDetailsHeaderMenu';
-import { DeleteDialog } from '../../../shared/DeleteDialog';
+import { gql, NetworkStatus, useLazyQuery, useMutation } from '@apollo/client';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import {
   Button,
@@ -30,6 +16,15 @@ import {
   TextField,
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers';
+
+import Icon from '../../../shared/Icon';
+import { LegoItem } from '../../../types';
+import { stateIcons, stripTypename } from '../../../utils';
+import { CollectionItemDetailsHeader } from './CollectionItemDetailsHeader';
+import { CollectionItemDetailsList } from './CollectionItemDetailsList';
+import { CollectionItemDetailsListItem } from './CollectionItemDetailsListItem';
+import { CollectionItemDetailsHeaderMenu } from './CollectionItemDetailsHeaderMenu';
+import { DeleteDialog } from '../../../shared/DeleteDialog';
 import { FormInputNumber } from '../../../shared/FormInputNumber';
 import { FormInputText } from '../../../shared/FormInputText';
 import { FormInputUrl } from '../../../shared/FormInputUrl';
@@ -99,18 +94,20 @@ export const CollectionItemDetailsLego = ({
    * Handle GET action
    */
   const [itemDetails, setItemDetails] = useState<LegoItem>();
-  const [getItem, { data, loading, error, refetch: itemRefetch, networkStatus }] =
-    useLazyQuery(GET_COLLECTIONITEM, {
-      fetchPolicy: 'cache-and-network',
-      onCompleted: (data) => {
-        setItemDetails(data?.item)
-      }
-    });
+  const [
+    getItem,
+    { data, loading, error, refetch: itemRefetch, networkStatus },
+  ] = useLazyQuery(GET_COLLECTIONITEM, {
+    fetchPolicy: 'network-only', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
+    onCompleted: (data) => {
+      setItemDetails(data?.item);
+    },
+  });
 
   useEffect(() => {
-    getItem({variables: {id: itemId}});
+    getItem({ variables: { id: itemId } });
   }, [itemId, getItem]);
-
 
   /**
    * Handle EDIT action
@@ -127,19 +124,18 @@ export const CollectionItemDetailsLego = ({
   const onSubmit = (submitData: any) => {
     updateCollectionItem({
       variables: {
-        data: submitData
+        data: submitData,
       },
       onCompleted(submitData) {
         if (submitData.updateCollectionItemLego.message === 'success') {
           setOpenEditDialog(false);
-          itemRefetch()
+          itemRefetch();
           // setSubmitSuccess(true);
           // props.onItemAdded(true);
         }
       },
     });
   };
-
 
   /**
    * Handling DELETE action
@@ -167,10 +163,10 @@ export const CollectionItemDetailsLego = ({
 
   if (networkStatus === NetworkStatus.refetch)
     return (
-      <div className='min-h-fit'>
+      <div className="min-h-fit">
         <LoadingSpinner />
       </div>
-    )
+    );
 
   return (
     <>
@@ -220,10 +216,10 @@ export const CollectionItemDetailsLego = ({
           </CollectionItemDetailsListItem>
           <CollectionItemDetailsListItem label="Price">
             <FormattedNumber
-              value={itemDetails?.price.amount || 0}
+              value={itemDetails?.price?.amount || 0}
               // eslint-disable-next-line react/style-prop-object
               style="currency"
-              currency={itemDetails?.price.currency || 'EUR'}
+              currency={itemDetails?.price?.currency || 'EUR'}
             />
           </CollectionItemDetailsListItem>
           {itemDetails?.link ? (
@@ -251,115 +247,76 @@ export const CollectionItemDetailsLego = ({
         </>
       </CollectionItemDetailsList>
 
-      {itemDetails ?
-      <DeleteDialog
-        dialogOpen={deleteDialogOpen}
-        handleDialog={handleDeleteDialog}
-        deleteItem={{ name: itemDetails?.name, itemId: itemDetails?._id }}
+      {itemDetails ? (
+        <DeleteDialog
+          dialogOpen={deleteDialogOpen}
+          handleDialog={handleDeleteDialog}
+          deleteItem={{ name: itemDetails?.name, itemId: itemDetails?._id }}
         />
-      :null}
+      ) : null}
 
-      {itemDetails ?
-      <Dialog
-        open={openEditDialog}
-        onClose={() => handleEditDialog(false)}
-        fullWidth={true}
-        maxWidth="md"
-      >
-        <DialogTitle>Update {itemDetails.name}</DialogTitle>
-        <FormProvider {...methods}>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <DialogContent>
-              <div className="w-full flex justify-between">
-                <div className="w-1/2 pr-3">
-                  <section className="py-3">
-                    <FormInputText
-                      name="meta.number"
-                      label="Number"
-                      required={true}
-                    />
-                  </section>
-                  <section className="py-3">
-                    <FormInputText
-                      name="name"
-                      label="Name"
-                      required={true}
-                    />
-                  </section>
-                  <section className="py-3">
-                    <Controller
-                      name="release_date"
-                      control={control}
-                      render={({ field }) => (
-                        <DatePicker
-                          label="Release date"
-                          inputFormat="DD-MM-YYYY"
-                          minDate={dayjs('01-01-1949')}
-                          value={field.value}
-                          onChange={field.onChange}
-                          renderInput={(relParams) => (
-                            <TextField {...relParams} className="w-full" />
-                          )}
-                        />
-                      )}
-                    />
-                  </section>
-                  <section className="py-3">
-                    <FormControl fullWidth>
-                      <InputLabel id="state-label">State</InputLabel>
+      {itemDetails ? (
+        <Dialog
+          open={openEditDialog}
+          onClose={() => handleEditDialog(false)}
+          fullWidth={true}
+          maxWidth="md"
+        >
+          <DialogTitle>Update {itemDetails.name}</DialogTitle>
+          <FormProvider {...methods}>
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <DialogContent>
+                <div className="w-full flex justify-between">
+                  <div className="w-1/2 pr-3">
+                    <section className="py-3">
+                      <FormInputText
+                        name="meta.number"
+                        label="Number"
+                        required={true}
+                      />
+                    </section>
+                    <section className="py-3">
+                      <FormInputText name="name" label="Name" required={true} />
+                    </section>
+                    <section className="py-3">
                       <Controller
-                        name="state"
+                        name="release_date"
                         control={control}
-                        defaultValue="sealed"
                         render={({ field }) => (
-                          <Select
-                            label="State"
-                            id="state"
-                            labelId="state-label"
+                          <DatePicker
+                            label="Release date"
+                            inputFormat="DD-MM-YYYY"
+                            minDate={dayjs('01-01-1949')}
                             value={field.value}
                             onChange={field.onChange}
-                          >
-                            {Object.entries(stateIcons).map((state) => (
-                              <MenuItem key={state[0]} value={state[0]}>
-                                <div className="flex items-center">
-                                  <Icon icon={stateIcons[state[0]]} />
-                                  <span className="ml-3 block truncate capitalize">
-                                    {state[0]}
-                                  </span>
-                                </div>
-                              </MenuItem>
-                            ))}
-                          </Select>
+                            renderInput={(relParams) => (
+                              <TextField {...relParams} className="w-full" />
+                            )}
+                          />
                         )}
                       />
-                    </FormControl>
-                  </section>
-                  <section className="py-3 flex justify-start">
-                    <div className="w-1/3 mr-3">
-                      <FormInputNumber
-                        name="price.amount"
-                        label="Price"
-                        inputProps={{ min: 0, step: 0.01 }}
-                      />
-                    </div>
-                    <div>
+                    </section>
+                    <section className="py-3">
                       <FormControl fullWidth>
-                        <InputLabel id="currency-label">Currency</InputLabel>
+                        <InputLabel id="state-label">State</InputLabel>
                         <Controller
-                          name="price.currency"
+                          name="state"
                           control={control}
+                          defaultValue="sealed"
                           render={({ field }) => (
                             <Select
-                              label="Currency"
-                              id="currency"
-                              labelId="currency-label"
-                              {...field}
+                              label="State"
+                              id="state"
+                              labelId="state-label"
+                              value={field.value}
+                              onChange={field.onChange}
                             >
-                              {['EUR', 'USD'].map((currencyCode) => (
-                                <MenuItem key={currencyCode} value={currencyCode}>
+                              {Object.entries(stateIcons).map((state) => (
+                                <MenuItem key={state[0]} value={state[0]}>
                                   <div className="flex items-center">
-                                    <span className="uppercase">
-                                      {currencyCode}
+                                    <Icon icon={stateIcons[state[0]]} />
+                                    <span className="ml-3 block truncate capitalize">
+                                      {state[0]}
                                     </span>
                                   </div>
                                 </MenuItem>
@@ -368,71 +325,100 @@ export const CollectionItemDetailsLego = ({
                           )}
                         />
                       </FormControl>
-                    </div>
-                  </section>
-                  <section className="py-3">
-                    <div className="w-2/5 mr-3">
+                    </section>
+                    <section className="py-3 flex justify-start">
+                      <div className="w-1/3 mr-3">
+                        <FormInputNumber
+                          name="price.amount"
+                          label="Price"
+                          inputProps={{ min: 0, step: 0.01 }}
+                        />
+                      </div>
+                      <div>
+                        <FormControl fullWidth>
+                          <InputLabel id="currency-label">Currency</InputLabel>
+                          <Controller
+                            name="price.currency"
+                            control={control}
+                            render={({ field }) => (
+                              <Select
+                                label="Currency"
+                                id="currency"
+                                labelId="currency-label"
+                                {...field}
+                              >
+                                {['EUR', 'USD'].map((currencyCode) => (
+                                  <MenuItem
+                                    key={currencyCode}
+                                    value={currencyCode}
+                                  >
+                                    <div className="flex items-center">
+                                      <span className="uppercase">
+                                        {currencyCode}
+                                      </span>
+                                    </div>
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            )}
+                          />
+                        </FormControl>
+                      </div>
+                    </section>
+                    <section className="py-3">
+                      <div className="w-2/5 mr-3">
+                        <FormInputNumber
+                          name="quantity"
+                          label="Quantity"
+                          inputProps={{ min: 0 }}
+                        />
+                      </div>
+                    </section>
+                  </div>
+                  <div className="w-1/2 pl-3">
+                    <section className="py-3">
+                      <FormInputText name="meta.theme" label="Theme" />
+                    </section>
+                    <section className="py-3">
+                      <FormInputText name="meta.subtheme" label="Subtheme" />
+                    </section>
+                    <section className="py-3">
                       <FormInputNumber
-                        name="quantity"
-                        label="Quantity"
+                        name="meta.minifigs"
+                        label="Minifigs"
                         inputProps={{ min: 0 }}
                       />
-                    </div>
-                  </section>
-                </div>
-                <div className="w-1/2 pl-3">
-                  <section className="py-3">
-                    <FormInputText
-                      name="meta.theme"
-                      label="Theme"
-                    />
-                  </section>
-                  <section className="py-3">
-                    <FormInputText
-                      name="meta.subtheme"
-                      label="Subtheme"
-                    />
-                  </section>
-                  <section className="py-3">
-                    <FormInputNumber
-                      name="meta.minifigs"
-                      label="Minifigs"
-                      inputProps={{ min: 0 }}
-                    />
-                  </section>
-                  <section className="py-3">
-                    <FormInputNumber
-                      name="meta.pieces"
-                      label="Pieces"
-                      inputProps={{ min: 0 }}
-                    />
-                  </section>
-                  <section className="py-3">
-                    <div className="mb-2">
-                      <FormInputText
-                        name="link.name"
-                        label="Link Name"
-                        required={true}
+                    </section>
+                    <section className="py-3">
+                      <FormInputNumber
+                        name="meta.pieces"
+                        label="Pieces"
+                        inputProps={{ min: 0 }}
                       />
-                    </div>
-                    <div>
-                      <FormInputUrl
-                        name="link.url"
-                        label="Link URL"
-                      />
-                    </div>
-                  </section>
+                    </section>
+                    <section className="py-3">
+                      <div className="mb-2">
+                        <FormInputText
+                          name="link.name"
+                          label="Link Name"
+                          required={true}
+                        />
+                      </div>
+                      <div>
+                        <FormInputUrl name="link.url" label="Link URL" />
+                      </div>
+                    </section>
+                  </div>
                 </div>
-              </div>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenEditDialog(false)}>Cancel</Button>
-            <Button type="submit">Save</Button>
-          </DialogActions>
-        </form>
-        </FormProvider>
-      </Dialog>
-      : null }
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setOpenEditDialog(false)}>Cancel</Button>
+                <Button type="submit">Save</Button>
+              </DialogActions>
+            </form>
+          </FormProvider>
+        </Dialog>
+      ) : null}
     </>
   );
 };

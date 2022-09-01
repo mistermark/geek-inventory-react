@@ -7,10 +7,11 @@ import {
 import { setContext } from '@apollo/client/link/context';
 import { useAuth0 } from '@auth0/auth0-react';
 import React from 'react';
+import { LoadingSpinner } from '../../shared/LoadingSpinner';
 
 export const AuthorizedApolloProvider = ({ children }: { children: React.ReactElement}) => {
   const { getAccessTokenSilently, isLoading, isAuthenticated } = useAuth0();
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <LoadingSpinner />;
   const httpLink = createHttpLink({
     uri: process.env.REACT_APP_NODE_API_URI,
   });

@@ -13,19 +13,7 @@ import reportWebVitals from './reportWebVitals';
 import Layout from './components/Layout';
 import './index.css';
 import { AuthorizedApolloProvider } from './components/auth/AuthorizedApolloProvider';
-
-const cache = new InMemoryCache({
-  typePolicies: {
-    CollectionItemMetaData: {
-      merge: true,
-    },
-  },
-});
-
-const client = new ApolloClient({
-  uri: 'http://localhost:8000/',
-  cache,
-});
+import { createTheme, ThemeProvider } from '@mui/material';
 
 type Auth0ProviderWithRedirectCallbackProps = {
   children: any;
@@ -61,28 +49,49 @@ const Auth0ProviderWithRedirectCallback = ({
   );
 };
 
+const theme = createTheme({
+  components: {
+    MuiAppBar: {
+      styleOverrides: {
+        colorPrimary: {
+          backgroundColor: 'var(--color-primary)'
+        }
+      }
+    },
+    MuiButton: {
+      styleOverrides: {
+        contained: {
+          backgroundColor: 'var(--color-secondary)'
+        }
+      }
+    }
+  }
+})
+
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      <Auth0ProviderWithRedirectCallback
-        domain={process.env.REACT_APP_AUTH0_DOMAIN || ''}
-        clientId={process.env.REACT_APP_AUTH0_CLIENTID || ''}
-        redirectUri={window.location.origin}
-        audience={process.env.REACT_APP_AUTH0_AUDIENCE || ''}
-      >
-        <IntlProvider locale="nl" defaultLocale="en">
-          <Layout>
+      <ThemeProvider theme={theme}>
+        <Auth0ProviderWithRedirectCallback
+          domain={process.env.REACT_APP_AUTH0_DOMAIN || ''}
+          clientId={process.env.REACT_APP_AUTH0_CLIENTID || ''}
+          redirectUri={window.location.origin}
+          audience={process.env.REACT_APP_AUTH0_AUDIENCE || ''}
+        >
+          <IntlProvider locale="nl" defaultLocale="en">
             <AuthorizedApolloProvider>
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <App />
-              </LocalizationProvider>
+              <Layout>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <App />
+                </LocalizationProvider>
+              </Layout>
             </AuthorizedApolloProvider>
-          </Layout>
-        </IntlProvider>
-      </Auth0ProviderWithRedirectCallback>
+          </IntlProvider>
+        </Auth0ProviderWithRedirectCallback>
+      </ThemeProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
