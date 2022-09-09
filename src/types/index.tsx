@@ -14,6 +14,12 @@ export type ItemCollectionType = {
   type: string;
 }
 
+export type ItemType = {
+  name: string;
+  type: string;
+  url: string;
+};
+
 export type ItemState = "pre-order" | "sealed" | "built" | "opened" | "boxed" | "unknown";
 export type ItemStateIcon = 'BiHourglass' | 'BiPackage' | 'BiLandscape' | 'BiBox' | 'BiEnvelopeOpen' | 'BiQuestionMark';
 

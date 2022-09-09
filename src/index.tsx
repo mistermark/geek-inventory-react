@@ -7,13 +7,13 @@ import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { Auth0Provider } from '@auth0/auth0-react';
+import { createTheme, ThemeProvider } from '@mui/material';
 
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import Layout from './components/Layout';
 import './index.css';
 import { AuthorizedApolloProvider } from './components/auth/AuthorizedApolloProvider';
-import { createTheme, ThemeProvider } from '@mui/material';
 
 type Auth0ProviderWithRedirectCallbackProps = {
   children: any;

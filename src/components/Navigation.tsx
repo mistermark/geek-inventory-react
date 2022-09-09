@@ -3,6 +3,7 @@ import { AppBar, Avatar, Box, Container, Divider, IconButton, Menu, MenuItem, To
 import LoginButton from './auth/LoginButton';
 import { useAuth0 } from '@auth0/auth0-react';
 import { NavLink } from 'react-router-dom';
+
 import SignUpButton from './auth/SignUpButton';
 import Icon from '../shared/Icon';
 
@@ -25,6 +26,7 @@ function classNames(...classes: string[]): string {
  */
 function Navigation(): React.ReactElement {
   const { user, isAuthenticated, logout } = useAuth0();
+  const roles = (user ? user['https://scrubjay.io/roles'] : []);
 
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const menuProfileOpen = Boolean(menuAnchorEl);
@@ -60,6 +62,21 @@ function Navigation(): React.ReactElement {
             ))}
             <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: "flex-end" }}>
               <div className="ml-4 flex items-center md:ml-6">
+              { roles.includes('Geek Admin') && isAuthenticated ? 
+                <NavLink
+                    to='/admin'
+                    className={({isActive}) => (
+                      classNames(
+                        isActive
+                          ? 'bg-gray-900'
+                          : 'hover:bg-gray-50 hover:text-gray-900',
+                        'px-3 py-2 rounded-md text-white font-medium'
+                      )
+                    )}
+                  >
+                    Admin*
+                  </NavLink>
+                : null}
                 {isAuthenticated ? 
                 <>
                   <IconButton
@@ -92,7 +109,7 @@ function Navigation(): React.ReactElement {
                 </>
                 : <>
                   <LoginButton />
-                  {/* <SignUpButton /> */}
+                  <SignUpButton />
                 </> } 
               </div>
             </Box>

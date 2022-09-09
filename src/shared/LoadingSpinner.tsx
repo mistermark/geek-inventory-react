@@ -1,6 +1,6 @@
 export const LoadingSpinner = () => {
     return (
-        <div className="absolute z-10 top-0 right-0 bottom-0 left-0 flex justify-center items-center py-16">
+        <div className="bg-white absolute z-10 top-0 right-0 bottom-0 left-0 flex justify-center items-center py-16">
             <svg
             className="inline mr-2 w-16 h-16 text-gray-200 animate-spin dark:text-gray-600 fill-emerald-500"
             viewBox="0 0 100 101"

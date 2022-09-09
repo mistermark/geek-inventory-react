@@ -30,7 +30,13 @@ export const AuthorizedApolloProvider = ({ children }: { children: React.ReactEl
   });
   const apolloClient = new ApolloClient({
     link: authLink.concat(httpLink),
-    cache: new InMemoryCache(),
+    cache: new InMemoryCache({
+      typePolicies: {
+        CollectionItemMetaData: {
+          merge: true
+        }
+      }
+    }),
   });
   return <ApolloProvider client={apolloClient}>{children}</ApolloProvider>;
 }

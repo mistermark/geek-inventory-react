@@ -3,6 +3,9 @@
 module.exports = {
   content: ['./src/**/*.{ts,tsx}'],
   theme: {
+    minHeight: {
+      '26': '26rem'
+    },
     extend: {
       colors: {
         fuchsia: {
