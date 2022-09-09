@@ -1,17 +1,19 @@
+import { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
+import { gql, NetworkStatus, useQuery } from '@apollo/client';
+import { useAuth0 } from '@auth0/auth0-react'
 
 import { LegoItem } from '../../types';
 import Icon from '../../shared/Icon';
-import { useState } from 'react';
 import { stateIcons } from '../../utils';
-import { gql, NetworkStatus, useQuery } from '@apollo/client';
 import { EmptyState } from '../../shared/EmptyState';
-import { CollectionItemDetails } from './CollectionItemDetails/CollectionItemDetails';
+import { ItemDetails } from '../ItemDetails/ItemDetails';
 import { LoadingSpinner } from '../../shared/LoadingSpinner';
+import { toolbarActionsEventChannel, userInventoryEventChannel } from '../../eventchannels';
 
 const GET_COLLECTIONITEMS_BYTYPE = gql`
-  query CollectionItemsByType($type: String!) {
-    collectionItemsByType(type: $type) {
+  query ItemsByType($type: String!, $username: String) {
+    itemsByType(type: $type, username: $username) {
       _id
       name
       state
@@ -24,28 +26,35 @@ const GET_COLLECTIONITEMS_BYTYPE = gql`
   }
 `;
 
-export const CollectionItemsLego = (): React.ReactElement => {
-  const { data, loading, error, refetch, networkStatus } = useQuery(
+export const InventoryItemListLego = (): React.ReactElement => {
+  const { user } = useAuth0();
+  const username: string = user && user['https://scrubjay.io/username'];
+  
+  const { data: dataInventory, loading, error, refetch, networkStatus } = useQuery(
     GET_COLLECTIONITEMS_BYTYPE, {
-      variables: { type: "lego" }
+      variables: { type: "lego", username }
     }
   );
 
-  const [selectedListItemId, setSelectedListItemId] = useState('');
+  const [selectedListItemId, setSelectedListItemId] = useState<string | undefined>('');
   const setSelectedItem = (selectedItem: LegoItem) => {
     setSelectedListItemId(selectedItem._id);
-    // selected(selectedItem);
   }
 
-  const onItemDelete = () => {
-    setSelectedListItemId('');
-    refetch();
-  };
+  useEffect(() => {
+    const unsubOnInventoryUpdated = userInventoryEventChannel.on('onInventoryUpdated', refetch);
+    const unsubOnInventoryItemRemoved = userInventoryEventChannel.on('onInventoryItemRemoved', () => {
+      setSelectedListItemId(undefined);
+      refetch();
+    });
+    return () => {
+      unsubOnInventoryUpdated();
+      unsubOnInventoryItemRemoved();
+    }
+  }, [refetch]);
 
   if (loading || networkStatus === NetworkStatus.refetch)
-    return (
-     <LoadingSpinner />
-    );
+    return <LoadingSpinner />;
   if (error) return <pre>{error.message}</pre>;
 
   return (
@@ -63,8 +72,8 @@ export const CollectionItemsLego = (): React.ReactElement => {
             </tr>
           </thead>
           <tbody>
-          {data && data.collectionItemsByType.length !== 0 ? (
-            data?.collectionItemsByType.map((item: LegoItem) => (
+          {dataInventory && dataInventory.itemsByType.length !== 0 ? (
+            dataInventory?.itemsByType.map((item: LegoItem) => (
               <tr key={item._id} onClick={() => setSelectedItem(item)} 
                 className={`cursor-pointer select-none text-sm text-gray-900 hover:bg-emerald-200 ${selectedListItemId === item._id ? 'bg-emerald-100' : 'odd:bg-white even:bg-gray-50'}`}>
                 <td className="p-2 text-gray-400">
@@ -109,8 +118,8 @@ export const CollectionItemsLego = (): React.ReactElement => {
         </table>
       </div>
       <div className="w-2/5 px-4">
-        <div className="bg-white shadow overflow-hidden relative">
-          <CollectionItemDetails selectedItemId={selectedListItemId} onDelete={onItemDelete} itemType="lego" />
+        <div className="bg-white min-h-26 shadow overflow-hidden relative">
+          <ItemDetails selectedItem={selectedListItemId} />
         </div>
       </div>
     </>

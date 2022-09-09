@@ -5,14 +5,14 @@ import Icon from '../../shared/Icon';
 import { CollectionItem, NendoroidItem } from '../../types';
 import { stateIcons, truncate } from '../../utils';
 
-type CollectionItemProps = {
+type InventoryItemListNendoroidProps = {
   items: any[] | undefined;
   selected: Function;
 };
 
-export const CollectionItemNendoroid = ({
+export const InventoryItemListNendoroid = ({
   items, selected
-}: CollectionItemProps) => {
+}: InventoryItemListNendoroidProps) => {
   const [selectedListItem, setSelectedListItem] = useState<CollectionItem>();
   const setSelectedItem = (selectedItem: CollectionItem) => {
       setSelectedListItem(selectedItem);

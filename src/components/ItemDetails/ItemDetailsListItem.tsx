@@ -1,12 +1,12 @@
-type CollectionItemDetailsListItemProps = {
+type ItemDetailsListItemProps = {
   children: string | React.ReactElement;
   label: string;
 };
 
-export const CollectionItemDetailsListItem = ({
+export const ItemDetailsListItem = ({
   children,
   label
-}: CollectionItemDetailsListItemProps) => {
+}: ItemDetailsListItemProps) => {
   return (
     <div className="odd:bg-gray-50 even:bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
       <dt className="text-sm font-medium text-gray-500">{label}</dt>

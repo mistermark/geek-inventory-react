@@ -17,22 +17,23 @@ import {
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers';
 
-import Icon from '../../../shared/Icon';
-import { LegoItem } from '../../../types';
-import { stateIcons, stripTypename } from '../../../utils';
-import { CollectionItemDetailsHeader } from './CollectionItemDetailsHeader';
-import { CollectionItemDetailsList } from './CollectionItemDetailsList';
-import { CollectionItemDetailsListItem } from './CollectionItemDetailsListItem';
-import { CollectionItemDetailsHeaderMenu } from './CollectionItemDetailsHeaderMenu';
-import { DeleteDialog } from '../../../shared/DeleteDialog';
-import { FormInputNumber } from '../../../shared/FormInputNumber';
-import { FormInputText } from '../../../shared/FormInputText';
-import { FormInputUrl } from '../../../shared/FormInputUrl';
-import { LoadingSpinner } from '../../../shared/LoadingSpinner';
+import Icon from '../../shared/Icon';
+import { LegoItem } from '../../types';
+import { stateIcons, stripTypename } from '../../utils';
+import { ItemDetailsHeader } from './ItemDetailsHeader';
+import { ItemDetailsList } from './ItemDetailsList';
+import { ItemDetailsListItem } from './ItemDetailsListItem';
+import { ItemDetailsHeaderMenu } from './ItemDetailsHeaderMenu';
+import { DeleteDialog } from '../../shared/DeleteDialog';
+import { FormInputNumber } from '../../shared/FormInputNumber';
+import { FormInputText } from '../../shared/FormInputText';
+import { FormInputUrl } from '../../shared/FormInputUrl';
+import { LoadingSpinner } from '../../shared/LoadingSpinner';
+import { userInventoryEventChannel } from '../../eventchannels';
+import { useAuth0 } from '@auth0/auth0-react';
 
-type CollectionItemDetailsLegoProps = {
+type ItemDetailsLegoProps = {
   itemId: string;
-  onDelete: Function;
 };
 
 const GET_COLLECTIONITEM = gql`
@@ -77,29 +78,30 @@ const UPDATE_COLLECTIONITEM = gql`
   }
 `;
 
-const DELETE_COLLECTIONITEM = gql`
-  mutation DeleteCollectionItem($deleteCollectionItemId: String!) {
-    deleteCollectionItem(id: $deleteCollectionItemId) {
+const REMOVE_FROMINVENTORY = gql`
+  mutation RemoveFromInventory($itemToRemoveId: String!, $username: String!) {
+    removeFromInventory(id: $itemToRemoveId, username: $username) {
       code
       message
     }
   }
-`;
+`
 
-export const CollectionItemDetailsLego = ({
+export const ItemDetailsLego = ({
   itemId,
-  onDelete,
-}: CollectionItemDetailsLegoProps) => {
+}: ItemDetailsLegoProps) => {
+  const { user } = useAuth0();
+  const username: string = user && user['https://scrubjay.io/username'];
+  
   /**
    * Handle GET action
    */
   const [itemDetails, setItemDetails] = useState<LegoItem>();
   const [
     getItem,
-    { data, loading, error, refetch: itemRefetch, networkStatus },
+    { loading, refetch: itemRefetch, networkStatus },
   ] = useLazyQuery(GET_COLLECTIONITEM, {
     fetchPolicy: 'network-only', // Used for first execution
-    nextFetchPolicy: 'cache-first', // Used for subsequent executions
     onCompleted: (data) => {
       setItemDetails(data?.item);
     },
@@ -130,47 +132,42 @@ export const CollectionItemDetailsLego = ({
         if (submitData.updateCollectionItemLego.message === 'success') {
           setOpenEditDialog(false);
           itemRefetch();
-          // setSubmitSuccess(true);
-          // props.onItemAdded(true);
         }
       },
     });
   };
 
   /**
-   * Handling DELETE action
+   * Handling REMOVE action
    */
-  const [deleteCollectionItem] = useMutation(DELETE_COLLECTIONITEM);
+  const [removeFromInventory] = useMutation(REMOVE_FROMINVENTORY);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const handleDeleteDialog = (dialogOpen: boolean, id?: String) => {
     if (id) {
-      deleteCollectionItem({
+      removeFromInventory({
         variables: {
-          deleteCollectionItemId: id,
+          itemToRemoveId: id,
+          username
         },
         onCompleted(data) {
-          if (data.deleteCollectionItem.message === 'success') {
+          if(data.removeFromInventory.message === 'success') {
             setDeleteDialogOpen(false);
             setItemDetails(undefined);
-            onDelete();
+            userInventoryEventChannel.emit('onInventoryItemRemoved');
           }
-        },
-      });
+        }
+      })
     } else {
       setDeleteDialogOpen(dialogOpen);
     }
   };
 
-  if (networkStatus === NetworkStatus.refetch)
-    return (
-      <div className="min-h-fit">
-        <LoadingSpinner />
-      </div>
-    );
+  if (loading || networkStatus === NetworkStatus.refetch)
+    return <LoadingSpinner />;
 
   return (
     <>
-      <CollectionItemDetailsHeader>
+      <ItemDetailsHeader>
         <>
           <div className="flex justify-start items-end">
             <Icon
@@ -187,43 +184,43 @@ export const CollectionItemDetailsLego = ({
             </div>
           </div>
           <div>
-            <CollectionItemDetailsHeaderMenu
-              handleEditDialog={handleEditDialog}
+            <ItemDetailsHeaderMenu
+              // handleEditDialog={handleEditDialog}
               handleDeleteDialog={handleDeleteDialog}
             />
           </div>
         </>
-      </CollectionItemDetailsHeader>
-      <CollectionItemDetailsList>
+      </ItemDetailsHeader>
+      <ItemDetailsList>
         <>
-          <CollectionItemDetailsListItem label="Theme">
+          <ItemDetailsListItem label="Theme">
             <span>{itemDetails?.meta.theme}</span>
-          </CollectionItemDetailsListItem>
-          <CollectionItemDetailsListItem label="Subtheme">
+          </ItemDetailsListItem>
+          <ItemDetailsListItem label="Subtheme">
             <span>{itemDetails?.meta.subtheme}</span>
-          </CollectionItemDetailsListItem>
-          <CollectionItemDetailsListItem label="Minifigs">
+          </ItemDetailsListItem>
+          <ItemDetailsListItem label="Minifigs">
             <span>{itemDetails?.meta.minifigs}</span>
-          </CollectionItemDetailsListItem>
-          <CollectionItemDetailsListItem label="Release Date">
+          </ItemDetailsListItem>
+          <ItemDetailsListItem label="Release Date">
             {dayjs(itemDetails?.release_date).format('YYYY/MM/DD')}
-          </CollectionItemDetailsListItem>
+          </ItemDetailsListItem>
           {/* <CollectionItemDetailsListItem label="Discontinued">
             <span>{itemDetails?.discontinued_date}</span>
           </CollectionItemDetailsListItem> */}
-          <CollectionItemDetailsListItem label="Pieces">
+          <ItemDetailsListItem label="Pieces">
             <span>{itemDetails?.meta.pieces}</span>
-          </CollectionItemDetailsListItem>
-          <CollectionItemDetailsListItem label="Price">
+          </ItemDetailsListItem>
+          <ItemDetailsListItem label="Price">
             <FormattedNumber
               value={itemDetails?.price?.amount || 0}
               // eslint-disable-next-line react/style-prop-object
               style="currency"
               currency={itemDetails?.price?.currency || 'EUR'}
             />
-          </CollectionItemDetailsListItem>
+          </ItemDetailsListItem>
           {itemDetails?.link ? (
-            <CollectionItemDetailsListItem label="Link(s)">
+            <ItemDetailsListItem label="Link(s)">
               <ul className="list-none">
                 {/* {itemDetails?.links.map((link: RefUrl) => ( */}
                 <li className="flex items-center mb-1">
@@ -239,13 +236,13 @@ export const CollectionItemDetailsLego = ({
                 </li>
                 {/* ))} */}
               </ul>
-            </CollectionItemDetailsListItem>
+            </ItemDetailsListItem>
           ) : null}
-          <CollectionItemDetailsListItem label="ID">
+          <ItemDetailsListItem label="ID">
             <span>{itemDetails?._id}</span>
-          </CollectionItemDetailsListItem>
+          </ItemDetailsListItem>
         </>
-      </CollectionItemDetailsList>
+      </ItemDetailsList>
 
       {itemDetails ? (
         <DeleteDialog

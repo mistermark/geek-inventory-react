@@ -1,22 +1,22 @@
 import { FormattedNumber } from 'react-intl';
 import dayjs from 'dayjs';
 
-import Icon from '../../../shared/Icon';
-import { RefUrl } from '../../../types';
-import { stateIcons } from '../../../utils';
-import { CollectionItemDetailsHeader } from './CollectionItemDetailsHeader';
-import { CollectionItemDetailsList } from './CollectionItemDetailsList';
-import { CollectionItemDetailsListItem } from './CollectionItemDetailsListItem';
+import Icon from '../../shared/Icon';
+import { RefUrl } from '../../types';
+import { stateIcons } from '../../utils';
+import { ItemDetailsHeader } from './ItemDetailsHeader';
+import { ItemDetailsList } from './ItemDetailsList';
+import { ItemDetailsListItem } from './ItemDetailsListItem';
 
-type CollectionItemDetailsNendoroidProps = {
+type ItemDetailsNendoroidProps = {
   item: any;
   onDelete: Function
 };
 
-export const CollectionItemDetailsNendoroid = ({
+export const ItemDetailsNendoroid = ({
   item,
   onDelete
-}: CollectionItemDetailsNendoroidProps) => {
+}: ItemDetailsNendoroidProps) => {
   return (
     <>
       {/* <CollectionItemDetailsHeader
@@ -26,30 +26,30 @@ export const CollectionItemDetailsNendoroid = ({
         itemId={item._id}
         onDelete={onDelete}
       /> */}
-      <CollectionItemDetailsList>
+      <ItemDetailsList>
         <>
-          <CollectionItemDetailsListItem label="Series">
+          <ItemDetailsListItem label="Series">
             {item.series}
-          </CollectionItemDetailsListItem>
-          <CollectionItemDetailsListItem label="Manufacturer">
+          </ItemDetailsListItem>
+          <ItemDetailsListItem label="Manufacturer">
             {item.manufacturer}
-          </CollectionItemDetailsListItem>
-          <CollectionItemDetailsListItem label="Release Date">
+          </ItemDetailsListItem>
+          <ItemDetailsListItem label="Release Date">
             {dayjs(item.release_date).format('YYYY/MM/DD')}
-          </CollectionItemDetailsListItem>
-          <CollectionItemDetailsListItem label="Quantity">
+          </ItemDetailsListItem>
+          <ItemDetailsListItem label="Quantity">
             {item.quantity}
-          </CollectionItemDetailsListItem>
-          <CollectionItemDetailsListItem label="Price">
+          </ItemDetailsListItem>
+          <ItemDetailsListItem label="Price">
             <FormattedNumber
               value={item.price.amount}
               // eslint-disable-next-line react/style-prop-object
               style="currency"
               currency={item.price.currency}
             />
-          </CollectionItemDetailsListItem>
+          </ItemDetailsListItem>
           {item.link ? 
-          <CollectionItemDetailsListItem label="Link(s)">
+          <ItemDetailsListItem label="Link(s)">
             <ul className="list-none">
               {/* {item.links.map((link: RefUrl) => ( */}
                 <li className="flex items-center mb-1">
@@ -65,10 +65,10 @@ export const CollectionItemDetailsNendoroid = ({
                 </li>
               {/* ))} */}
             </ul>
-          </CollectionItemDetailsListItem>
+          </ItemDetailsListItem>
           : null }
         </>
-      </CollectionItemDetailsList>
+      </ItemDetailsList>
     </>
   );
 };

@@ -17,28 +17,29 @@ import {
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers';
 
-import Icon from '../../../shared/Icon';
+import Icon from '../../shared/Icon';
 import {
   gameGenres,
   sortArrayObjects,
   stateIcons,
   stripTypename,
-} from '../../../utils';
-import { VideoGameItem } from '../../../types';
-import { CollectionItemDetailsHeader } from './CollectionItemDetailsHeader';
-import { CollectionItemDetailsList } from './CollectionItemDetailsList';
-import { CollectionItemDetailsListItem } from './CollectionItemDetailsListItem';
-import { CollectionItemDetailsHeaderMenu } from './CollectionItemDetailsHeaderMenu';
-import { DeleteDialog } from '../../../shared/DeleteDialog';
-import { FormInputNumber } from '../../../shared/FormInputNumber';
-import { FormInputText } from '../../../shared/FormInputText';
-import { FormInputUrl } from '../../../shared/FormInputUrl';
-import { FormInputTags } from '../../../shared/FormInputTags';
-import { LoadingSpinner } from '../../../shared/LoadingSpinner';
+} from '../../utils';
+import { VideoGameItem } from '../../types';
+import { ItemDetailsHeader } from './ItemDetailsHeader';
+import { ItemDetailsList } from './ItemDetailsList';
+import { ItemDetailsListItem } from './ItemDetailsListItem';
+import { ItemDetailsHeaderMenu } from './ItemDetailsHeaderMenu';
+import { DeleteDialog } from '../../shared/DeleteDialog';
+import { FormInputNumber } from '../../shared/FormInputNumber';
+import { FormInputText } from '../../shared/FormInputText';
+import { FormInputUrl } from '../../shared/FormInputUrl';
+import { FormInputTags } from '../../shared/FormInputTags';
+import { LoadingSpinner } from '../../shared/LoadingSpinner';
+import { userInventoryEventChannel } from '../../eventchannels';
+import { useAuth0 } from '@auth0/auth0-react';
 
-type CollectionItemDetailsVideoGameProps = {
+type ItemDetailsVideoGameProps = {
   itemId: string;
-  onDelete: Function;
 };
 
 const GET_COLLECTIONITEM = gql`
@@ -84,19 +85,21 @@ const UPDATE_COLLECTIONITEM = gql`
   }
 `;
 
-const DELETE_COLLECTIONITEM = gql`
-  mutation DeleteCollectionItem($deleteCollectionItemId: String!) {
-    deleteCollectionItem(id: $deleteCollectionItemId) {
+const REMOVE_FROMINVENTORY = gql`
+  mutation RemoveFromInventory($itemToRemoveId: String!, $username: String!) {
+    removeFromInventory(id: $itemToRemoveId, username: $username) {
       code
       message
     }
   }
-`;
+`
 
-export const CollectionItemDetailsVideoGame = ({
+export const ItemDetailsVideoGame = ({
   itemId,
-  onDelete,
-}: CollectionItemDetailsVideoGameProps) => {
+}: ItemDetailsVideoGameProps) => {
+  const { user } = useAuth0();
+  const username: string = user && user['https://scrubjay.io/username'];
+  
   /**
    * Handle GET action
    */
@@ -106,7 +109,6 @@ export const CollectionItemDetailsVideoGame = ({
     { data, loading, error, refetch: itemRefetch, networkStatus },
   ] = useLazyQuery(GET_COLLECTIONITEM, {
     fetchPolicy: 'network-only', // Used for first execution
-    nextFetchPolicy: 'cache-first', // Used for subsequent executions
     onCompleted: (data) => {
       setItemDetails(data?.item);
     },
@@ -145,39 +147,36 @@ export const CollectionItemDetailsVideoGame = ({
   };
 
   /**
-   * Handling DELETE action
+   * Handling REMOVE action
    */
-  const [deleteCollectionItem] = useMutation(DELETE_COLLECTIONITEM);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const handleDeleteDialog = (dialogOpen: boolean, id?: String) => {
-    if (id) {
-      deleteCollectionItem({
-        variables: {
-          deleteCollectionItemId: id,
-        },
-        onCompleted(data) {
-          if (data.deleteCollectionItem.message === 'success') {
-            setDeleteDialogOpen(false);
-            setItemDetails(undefined);
-            onDelete();
-          }
-        },
-      });
-    } else {
-      setDeleteDialogOpen(dialogOpen);
-    }
-  };
+   const [removeFromInventory] = useMutation(REMOVE_FROMINVENTORY);
+   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+   const handleDeleteDialog = (dialogOpen: boolean, id?: String) => {
+     if (id) {
+       removeFromInventory({
+         variables: {
+           itemToRemoveId: id,
+           username
+         },
+         onCompleted(data) {
+           if(data.removeFromInventory.message === 'success') {
+             setDeleteDialogOpen(false);
+             setItemDetails(undefined);
+             userInventoryEventChannel.emit('onInventoryItemRemoved');
+           }
+         }
+       })
+     } else {
+       setDeleteDialogOpen(dialogOpen);
+     }
+   };
 
   if (networkStatus === NetworkStatus.refetch)
-    return (
-      <div className="min-h-fit">
-        <LoadingSpinner />
-      </div>
-    );
+    return <LoadingSpinner />;
 
   return (
     <>
-      <CollectionItemDetailsHeader>
+      <ItemDetailsHeader>
         <>
           <div className="flex justify-start items-end">
             <Icon
@@ -194,22 +193,22 @@ export const CollectionItemDetailsVideoGame = ({
             </div>
           </div>
           <div>
-            <CollectionItemDetailsHeaderMenu
-              handleEditDialog={handleEditDialog}
+            <ItemDetailsHeaderMenu
+              // handleEditDialog={handleEditDialog}
               handleDeleteDialog={handleDeleteDialog}
             />
           </div>
         </>
-      </CollectionItemDetailsHeader>
-      <CollectionItemDetailsList>
+      </ItemDetailsHeader>
+      <ItemDetailsList>
         <>
-          <CollectionItemDetailsListItem label="Developer">
+          <ItemDetailsListItem label="Developer">
             <span>{itemDetails?.meta.developer}</span>
-          </CollectionItemDetailsListItem>
-          <CollectionItemDetailsListItem label="Release Date">
+          </ItemDetailsListItem>
+          <ItemDetailsListItem label="Release Date">
             {dayjs(itemDetails?.release_date).format('YYYY/MM/DD')}
-          </CollectionItemDetailsListItem>
-          <CollectionItemDetailsListItem label="Genre(s)">
+          </ItemDetailsListItem>
+          <ItemDetailsListItem label="Genre(s)">
             <span>
               {itemDetails?.meta.genre?.map(
                 (genre: any, i: number, row: string[]) => {
@@ -217,23 +216,23 @@ export const CollectionItemDetailsVideoGame = ({
                 }
               )}
             </span>
-          </CollectionItemDetailsListItem>
-          <CollectionItemDetailsListItem label="Rating">
+          </ItemDetailsListItem>
+          <ItemDetailsListItem label="Rating">
             <span>{itemDetails?.meta.rating}</span>
-          </CollectionItemDetailsListItem>
-          <CollectionItemDetailsListItem label="Quantity">
+          </ItemDetailsListItem>
+          <ItemDetailsListItem label="Quantity">
             <span>{itemDetails?.quantity}</span>
-          </CollectionItemDetailsListItem>
-          <CollectionItemDetailsListItem label="Price">
+          </ItemDetailsListItem>
+          <ItemDetailsListItem label="Price">
             <FormattedNumber
               value={itemDetails?.price.amount || 0}
               // eslint-disable-next-line react/style-prop-object
               style="currency"
               currency={itemDetails?.price.currency || 'EUR'}
             />
-          </CollectionItemDetailsListItem>
+          </ItemDetailsListItem>
           {itemDetails && itemDetails?.link ? (
-            <CollectionItemDetailsListItem label="Link(s)">
+            <ItemDetailsListItem label="Link(s)">
               <ul className="list-none">
                 {/* {itemDetails.links.map((link: RefUrl) => ( */}
                 <li className="flex items-center mb-1">
@@ -249,13 +248,13 @@ export const CollectionItemDetailsVideoGame = ({
                 </li>
                 {/* ))} */}
               </ul>
-            </CollectionItemDetailsListItem>
+            </ItemDetailsListItem>
           ) : null}
-          <CollectionItemDetailsListItem label="EAN">
+          <ItemDetailsListItem label="EAN">
             <span>{itemDetails?.ean}</span>
-          </CollectionItemDetailsListItem>
+          </ItemDetailsListItem>
         </>
-      </CollectionItemDetailsList>
+      </ItemDetailsList>
 
       {itemDetails ? (
         <DeleteDialog

@@ -1,8 +1,8 @@
-type CollectionItemDetailsHeaderProps = {
+type ItemDetailsHeaderProps = {
     children: React.ReactElement
 }
 
-export const CollectionItemDetailsHeader = ({children}: CollectionItemDetailsHeaderProps) => {
+export const ItemDetailsHeader = ({children}: ItemDetailsHeaderProps) => {
   return (
     <div className="px-4 py-5 sm:px-6">
       <div className="flex justify-between">

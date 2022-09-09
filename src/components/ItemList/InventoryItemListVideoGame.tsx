@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
 
-import { CollectionItem, VideoGameItem } from "../../types";
+import { VideoGameItem } from "../../types";
 import Icon from "../../shared/Icon";
 import { stateIcons, truncate } from '../../utils';
 import { gql, NetworkStatus, useQuery } from '@apollo/client';
 import { LoadingSpinner } from '../../shared/LoadingSpinner';
-import { CollectionItemDetails } from './CollectionItemDetails/CollectionItemDetails';
+import { ItemDetails } from '../ItemDetails/ItemDetails';
 import { EmptyState } from '../../shared/EmptyState';
+import { userInventoryEventChannel } from '../../eventchannels';
 
 const GET_COLLECTIONITEMS_BYTYPE = gql`
   query CollectionItemsByType($type: String!) {
@@ -24,7 +25,7 @@ const GET_COLLECTIONITEMS_BYTYPE = gql`
   }
 `;
 
-export const CollectionItemVideoGame = () => {
+export const InventoryItemListVideoGame = () => {
   const { data, loading, error, refetch, networkStatus } = useQuery(
     GET_COLLECTIONITEMS_BYTYPE, {
       variables: { type: "videogame" }
@@ -37,10 +38,17 @@ export const CollectionItemVideoGame = () => {
     // selected(selectedItem);
   }
 
-  const onItemDelete = () => {
-    setSelectedListItemId('');
-    refetch();
-  };
+  useEffect(() => {
+    const unsubOnInventoryUpdated = userInventoryEventChannel.on('onInventoryUpdated', refetch);
+    const unsubOnInventoryItemRemoved = userInventoryEventChannel.on('onInventoryItemRemoved', () => {
+      setSelectedListItemId('');
+      refetch();
+    });
+    return () => {
+      unsubOnInventoryUpdated();
+      unsubOnInventoryItemRemoved();
+    }
+  }, [refetch]);
 
   if (loading || networkStatus === NetworkStatus.refetch)
     return (
@@ -108,7 +116,7 @@ export const CollectionItemVideoGame = () => {
       </div>
       <div className="w-2/5 px-4">
         <div className="bg-white shadow overflow-hidden relative">
-          <CollectionItemDetails selectedItemId={selectedListItemId} onDelete={onItemDelete} itemType="videogame" />
+          <ItemDetails selectedItem={selectedListItemId} />
         </div>
       </div>
     </>
